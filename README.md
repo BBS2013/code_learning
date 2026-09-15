@@ -43,5 +43,6 @@ Then open http://localhost:5000.
 
 `.cursor/environment.json` configures the Cursor Cloud Agent environment:
 
-- `install` creates a virtualenv and installs dependencies.
+- `install` runs `.cursor/install.sh`, which provisions `python3-venv` (once),
+  creates a virtualenv, and installs dependencies.
 - `terminals.web` starts the Flask dev server on port 5000.
