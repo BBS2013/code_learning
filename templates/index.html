@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>code_learning · Learning Notes</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --accent: #38bdf8;
+            --accent-strong: #0ea5e9;
+            --text: #e2e8f0;
+            --muted: #94a3b8;
+            --border: #334155;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+            background: radial-gradient(1200px 600px at 20% -10%, #1e3a5f 0%, var(--bg) 55%);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            padding: 48px 16px;
+        }
+        .container { width: 100%; max-width: 640px; }
+        header { margin-bottom: 28px; }
+        h1 { margin: 0 0 6px; font-size: 28px; letter-spacing: -0.02em; }
+        h1 .mono { color: var(--accent); font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+        p.subtitle { margin: 0; color: var(--muted); font-size: 15px; }
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 20px 40px -24px rgba(0,0,0,0.7);
+        }
+        form { display: flex; gap: 12px; margin-bottom: 20px; }
+        input[type="text"] {
+            flex: 1;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: #0f172a;
+            color: var(--text);
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.15s ease;
+        }
+        input[type="text"]:focus { border-color: var(--accent); }
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(180deg, var(--accent), var(--accent-strong));
+            color: #04121f;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: transform 0.08s ease, filter 0.15s ease;
+        }
+        button:hover { filter: brightness(1.06); }
+        button:active { transform: translateY(1px); }
+        ul#notes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+        li.note {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 14px 16px;
+            background: #0f172a;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+        }
+        li.note .text { font-size: 15px; }
+        li.note .meta { color: var(--muted); font-size: 12px; white-space: nowrap; }
+        .empty { color: var(--muted); font-size: 14px; text-align: center; padding: 12px 0; }
+        footer { margin-top: 22px; color: var(--muted); font-size: 13px; text-align: center; }
+        code { background: #0f172a; padding: 2px 6px; border-radius: 6px; border: 1px solid var(--border); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Welcome to <span class="mono">code_learning</span></h1>
+            <p class="subtitle">A minimal Flask starter to prove the dev environment runs end to end.</p>
+        </header>
+        <div class="card">
+            <form id="note-form">
+                <input type="text" id="note-input" placeholder="Add a learning note…" autocomplete="off" />
+                <button type="submit">Add note</button>
+            </form>
+            <ul id="notes"></ul>
+            <div class="empty" id="empty">No notes yet — add your first one above.</div>
+        </div>
+        <footer>
+            API: <code>GET /api/notes</code> · <code>POST /api/notes</code> · <code>GET /api/health</code>
+        </footer>
+    </div>
+
+    <script>
+        const list = document.getElementById("notes");
+        const empty = document.getElementById("empty");
+        const form = document.getElementById("note-form");
+        const input = document.getElementById("note-input");
+
+        function render(notes) {
+            list.innerHTML = "";
+            empty.style.display = notes.length ? "none" : "block";
+            for (const note of notes) {
+                const li = document.createElement("li");
+                li.className = "note";
+                const text = document.createElement("span");
+                text.className = "text";
+                text.textContent = note.text;
+                const meta = document.createElement("span");
+                meta.className = "meta";
+                meta.textContent = "#" + note.id;
+                li.append(text, meta);
+                list.appendChild(li);
+            }
+        }
+
+        async function load() {
+            const res = await fetch("/api/notes");
+            const data = await res.json();
+            render(data.notes);
+        }
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const text = input.value.trim();
+            if (!text) return;
+            await fetch("/api/notes", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text }),
+            });
+            input.value = "";
+            await load();
+            input.focus();
+        });
+
+        load();
+    </script>
+</body>
+</html>
